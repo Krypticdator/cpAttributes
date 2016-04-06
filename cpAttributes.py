@@ -3,6 +3,7 @@ __author__ = 'Toni'
 from SQLAlchemyBaseClass import dbManager, DefaultTableOperations
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from SQLAlchemyBaseClass import Base
+from XmlManager import XmlManager
 
 class BluePrintsTable(Base, DefaultTableOperations):
     __tablename__ = 'blueprints_table'
@@ -78,7 +79,8 @@ class dbComplication(Base, DefaultTableOperations):
         return instance
 
 class Skill(object):
-    def __init__(self, name:str, table_id:int=None, bp_id:int=None, char_id:int=None, chipped:bool=False, ip:int=0, lvl:int=0, field:str=None):
+    def __init__(self, name:str, table_id:int=None, bp_id:int=None, char_id:int=None, chipped:bool=False, ip:int=0,
+                 lvl:int=0, field:str=None):
         super().__init__()
         self.id = table_id
         self.name = name
@@ -92,7 +94,7 @@ class Skill(object):
         self.category = None
         self.chippable = None
         self.chip_lvl_cost = None
-        self.load_from_db()
+        # self.load_from_db()
         self.ip = ip
         self.lvl = lvl
         self.chipped = chipped
@@ -192,7 +194,7 @@ class Complication(object):
 
 class dbAttributesManager(dbManager):
     def __init__(self):
-        super().__init__("sqlite:///attributes.db", echo=True)
+        super().__init__("sqlite:///attributes.db", echo=False)
         blueprints_master = BluePrintsTable()
         skill_blueprints = SkillBlueprints()
         complication_blueprints = ComplicationBlueprints()
@@ -211,13 +213,23 @@ class dbAttributesManager(dbManager):
 def main():
     db_mgr = dbAttributesManager()
     blueprints = db_mgr.databases['skill_blueprints']
+    rows_num = blueprints.count()
+    if rows_num == 0:
+        xml_mgr = XmlManager()
+        skills = xml_mgr.import_skills()
+        print(skills)
+    '''if blueprints.count() == 0:
+        xml_mgr = XmlManager()
+        xml_mgr.import_skills()
+    del(blueprints)'''
     # row = SkillBlueprints(category="reflexes", chip_lvl_cost = 100, chippable=True, diff=1, short="han", stat="ref",
     #                      name="hangun")
     # blueprints.add_and_commit(row)
-    s = Skill("hangun", char_id=1, lvl=3)
-    print(s.category)
-    print(s.lvl)
-    print(s.bp_id)
+    # s = Skill("hangun", char_id=1, lvl=3)
+    # s.save_to_db()
+    # print(s.category)
+    # print(s.lvl)
+    # print(s.bp_id)
     #s.save_to_db()
 
 
