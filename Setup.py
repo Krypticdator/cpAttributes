@@ -5,7 +5,7 @@ __author__ = 'Toni'
 from distutils.core import setup
 
 setup(name='cpAttributes',
-      version='1.0',
+      version='1.1',
       description='cpAttributes to use for character',
       author='Toni Nurmi',
       author_email='toni.nurmi@hotmail.com',
