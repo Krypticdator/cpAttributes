@@ -1,1 +1,2 @@
 -e git+https://github.com/Krypticdator/SQLAlchemyBaseClass.git#egg=SQLAlchemyBaseClass
+-e git+https://github.com/Krypticdator/AWSExportImportManager.git#egg=awsExportImportManager
