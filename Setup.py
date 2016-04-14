@@ -12,6 +12,6 @@ setup(name='cpAttributes',
       install_requires=['SQLAlchemyBaseClass',
                         'awsExportImportManager',
                         'sqlalchemy'],
-      dependency_links=['https://github.com/Krypticdator/SQLAlchemyBaseClass.git#egg=SQLAlchemyBaseClass',
-                        'https://github.com/Krypticdator/AWSExportImportManager.git#egg=awsExportImportManager']
+      dependency_links=['https://github.com/Krypticdator/SQLAlchemyBaseClass.git#egg=SQLAlchemyBaseClass-1.2',
+                        'https://github.com/Krypticdator/AWSExportImportManager.git#egg=awsExportImportManager-1.1']
      )
