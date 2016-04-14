@@ -6,6 +6,8 @@ from SQLAlchemyBaseClass import Base
 
 from AWSExportImportManager import EndpointManager
 
+# TODO move category field here
+
 
 class BluePrintsTable(Base, DefaultTableOperations):
     __tablename__ = 'blueprints_table'
@@ -20,7 +22,12 @@ class BluePrintsTable(Base, DefaultTableOperations):
         query = self.session.query(c).order_by(c.name)
         return len(query.all())
 
-    def add(self, name, description, cost):
+    def add(self, name: str, description: str, cost: float):
+        """adds attribute to blueprints table
+        :param name: name of the attribute
+        :param description: description of the attribute
+        :param cost: price to rise the attribute during character creation
+        """
         c = self.get_class()
         row = c(name=name, description=description, cost=cost)
         self.add_and_commit(row)
@@ -76,7 +83,13 @@ class DefaultAttributeOperations(DefaultTableOperations):
     def __init__(self):
         super().__init__()
 
-    def already_exists(self, char_id, attribute_name):
+    def already_exists(self, char_id: int, attribute_name: str) -> bool:
+        """Check if character already has the attribute
+
+        :param char_id: Characters unique identifier
+        :param attribute_name: attribute to search for
+        :return: if instance is found from the database
+        """
         c = self.get_class()
         query = self.session.query(c). \
             filter(c.character_id == char_id). \
@@ -95,6 +108,34 @@ class DefaultAttributeOperations(DefaultTableOperations):
 
         instance = query.first()
         return instance
+
+class dbStat(Base, DefaultTableOperations):
+    __tablename__ = 'stats'
+    id = Column(Integer, primary_key=True)
+    character_id = Column(Integer)
+    name = Column(String)
+    short = Column(String)
+    lvl = Column(Integer)
+    cc = Column(Integer)
+
+    def load_stat(self, char_id, short):
+        c = self.get_class()
+        query = self.session.query(c). \
+            filter(c.character_id == char_id). \
+            filter(c.short == short)
+
+        instance = query.first()
+        return instance
+
+    def update_stat(self, char_id, stat_name, stat_short, lvl):
+        instance = self.load_stat(char_id=char_id, short=stat_short)
+        if instance:
+            instance.lvl = lvl
+            self.add_and_commit(instance)
+        else:
+            row = dbStat(character_id=char_id, short=stat_short, name=stat_name, lvl=lvl, cc=lvl)
+            self.add_and_commit(row)
+
 
 class dbSkills(Base, DefaultTableOperations):
     __tablename__ = 'skills'
@@ -208,6 +249,101 @@ class dbPerk(Base, DefaultAttributeOperations):
             instance = self.load_attribute(char_id=char_id, attribute_name=perk_name)
             instance.target_character_id = target_char_id
             self.session.commit()
+
+class Stat(object):
+    def __init__(self, character_id, name, short, lvl=0):
+        super().__init__()
+        self.character_id = character_id
+        self.name = name
+        self.short = short
+        self.lvl = lvl
+        self.cc = lvl
+        self.load()
+
+        db = dbAttributesManager()
+        if lvl != 0:
+            db.stats.update_stat(char_id=character_id, stat_name=name, stat_short=short, lvl=lvl)
+            self.lvl = lvl
+
+    def load(self):
+        db = dbAttributesManager()
+        instance = db.stats.load_stat(char_id=self.character_id, short=self.short)
+        if instance:
+            self.name = instance.name
+            self.short = instance.short
+            self.lvl = instance.lvl
+            self.cc = instance.cc
+
+    def save(self):
+        db = dbAttributesManager()
+        db.stats.update_stat(char_id=self.character_id, stat_name=self.name, stat_short=self.short, lvl=self.lvl)
+
+
+
+class Stats(object):
+    def __init__(self, character_id, intelligence=0, reflexes=0, technique=0, dexterity=0, presence=0, willpower=0,
+                 strength=0, constitution=0, move=0, body=0):
+        super().__init__()
+        self.stats = {}
+        self.order = []
+        self.character_id = character_id
+        self.add(name='intelligence', short='int', lvl=intelligence)
+        self.add(name='reflexes', short='ref', lvl=reflexes)
+        self.add(name='technique', short='tech', lvl=technique)
+        self.add(name='dexterity', short='dex', lvl=dexterity)
+        self.add(name='presence', short='pre', lvl=presence)
+        self.add(name='willpower', short='will', lvl=willpower)
+        self.add(name='strength', short='str', lvl=strength)
+        self.add(name='constitution', short='con', lvl=constitution)
+        self.add(name='move', short='move', lvl=move)
+        self.add(name='body', short='body', lvl=body)
+        if self.has_derived_stats():
+            pass
+        else:
+            self.calculate_derived_stats()
+
+    def has_derived_stats(self):
+        s = Stat(self.character_id, 'luck', 'luck')
+        if s.cc == 0:
+            return False
+        else:
+            return True
+
+    def add(self, name, short, lvl):
+        self.stats[short] = Stat(self.character_id, name, short, lvl)
+        self.order.append(short)
+
+    def get(self, short) -> Stat:
+        return self.stats[short]
+
+    def alter_lvl(self, short, value):
+        stat = self.get(short)
+        stat.lvl = value
+        stat.save()
+
+    def calculate_derived_stats(self):
+        intelligence = self.get('int').lvl
+        reflexes = self.get('ref').lvl
+        willpower = self.get('will').lvl
+        strength = self.get('str').lvl
+        constitution = self.get('con').lvl
+        body = self.get('body').lvl
+        luck = int((intelligence + reflexes) / 2)
+        humanity = willpower * 10
+        recovery = int((strength + constitution) / 2)
+        endurance = constitution * 2
+        hits = body * 5
+        stun = body * 5
+        resistance = willpower * 3
+        sd = constitution
+        self.add('luck', 'luck', luck)
+        self.add('humanity', 'hum', humanity)
+        self.add('recovery', 'rec', recovery)
+        self.add('endurance', 'end', endurance)
+        self.add('hits', 'hits', hits)
+        self.add('stun', 'stun', stun)
+        self.add('resistance', 'res', resistance)
+        self.add('stun defense', 'sd', sd)
 
 class Skill(object):
     def __init__(self, name:str, char_id:int=None, chipped:bool=False, ip:int=0, lvl:int=0, field:str=None):
@@ -394,6 +530,7 @@ class dbAttributesManager(dbManager):
         self.complications = dbComplication()
         self.talents = dbTalent()
         self.perks = dbPerk()
+        self.stats = dbStat()
 
         blueprints_master.set_session(self.session)
         self.skill_blueprints.set_session(self.session)
@@ -404,6 +541,7 @@ class dbAttributesManager(dbManager):
         self.complications.set_session(self.session)
         self.talents.set_session(self.session)
         self.perks.set_session(self.session)
+        self.stats.set_session(self.session)
 
         self.databases['blueprints_table'] = blueprints_master
         self.databases['skill_blueprints'] = self.skill_blueprints
@@ -441,9 +579,7 @@ class dbAttributesManager(dbManager):
 
 def main():
     db_mgr = dbAttributesManager()
-    blueprints = db_mgr.databases['skill_blueprints']
-
-
+   
 if __name__ == '__main__':
     main()
 
