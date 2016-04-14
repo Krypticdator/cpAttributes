@@ -6,6 +6,7 @@ from SQLAlchemyBaseClass import Base
 
 from AWSExportImportManager import EndpointManager
 
+
 # TODO move category field here
 
 
@@ -39,6 +40,7 @@ class BluePrintsTable(Base, DefaultTableOperations):
 
     __mapper_args__ = {'polymorphic_on': type, 'polymorphic_identity': 'blueprints_table'}
 
+
 class SkillBlueprints(BluePrintsTable):
     stat = Column(String)
     short = Column(String)
@@ -52,7 +54,7 @@ class SkillBlueprints(BluePrintsTable):
         diff = int(diff)
         chip_lvl_cost = int(chip_lvl_cost)
         cost = float(cost)
-        if chippable=='yes':
+        if chippable == 'yes':
             chippable = True
         else:
             chippable = False
@@ -60,6 +62,7 @@ class SkillBlueprints(BluePrintsTable):
         skill = SkillBlueprints(name=name, short=short, diff=diff, category=category, chippable=chippable,
                                 chip_lvl_cost=chip_lvl_cost, cost=cost, stat=stat, description=description)
         self.add_and_commit(skill)
+
 
 class StatBlueprints(BluePrintsTable):
     __mapper_args__ = {'polymorphic_identity': 'stat_blueprints'}
@@ -79,7 +82,6 @@ class PerkBluePrints(BluePrintsTable):
 
 
 class DefaultAttributeOperations(DefaultTableOperations):
-
     def __init__(self):
         super().__init__()
 
@@ -108,6 +110,7 @@ class DefaultAttributeOperations(DefaultTableOperations):
 
         instance = query.first()
         return instance
+
 
 class dbStat(Base, DefaultTableOperations):
     __tablename__ = 'stats'
@@ -151,8 +154,8 @@ class dbSkills(Base, DefaultTableOperations):
 
     def already_exists(self, char_id, skill_name):
         query = self.session.query(dbSkills). \
-                filter(dbSkills.character_id == char_id). \
-                filter(dbSkills.blueprint_name == skill_name)
+            filter(dbSkills.character_id == char_id). \
+            filter(dbSkills.blueprint_name == skill_name)
         instance = query.first()
         if instance:
             return True
@@ -208,6 +211,7 @@ class dbComplication(Base, DefaultAttributeOperations):
                                  intensity=intensity, importance=importance)
             self.add_and_commit(row)
 
+
 class dbTalent(Base, DefaultAttributeOperations):
     __tablename__ = 'talents'
     id = Column(Integer, primary_key=True)
@@ -250,6 +254,7 @@ class dbPerk(Base, DefaultAttributeOperations):
             instance.target_character_id = target_char_id
             self.session.commit()
 
+
 class Stat(object):
     def __init__(self, character_id, name, short, lvl=0):
         super().__init__()
@@ -277,7 +282,6 @@ class Stat(object):
     def save(self):
         db = dbAttributesManager()
         db.stats.update_stat(char_id=self.character_id, stat_name=self.name, stat_short=self.short, lvl=self.lvl)
-
 
 
 class Stats(object):
@@ -345,8 +349,10 @@ class Stats(object):
         self.add('resistance', 'res', resistance)
         self.add('stun defense', 'sd', sd)
 
+
 class Skill(object):
-    def __init__(self, name:str, char_id:int=None, chipped:bool=False, ip:int=0, lvl:int=0, field:str=None):
+    def __init__(self, name: str, char_id: int = None, chipped: bool = False, ip: int = 0, lvl: int = 0,
+                 field: str = None):
         super().__init__()
         self.name = None
         self.char_id = char_id
@@ -370,7 +376,7 @@ class Skill(object):
             self.lvl = lvl
         self.save_to_db()
 
-    def add_ip_points(self, points:int):
+    def add_ip_points(self, points: int):
         db = dbAttributesManager()
         db_skills = db.databases['skills']
         if self.name:
@@ -412,8 +418,9 @@ class Skill(object):
             self.field = skill.field
             self.flags = skill.flags
 
+
 class Complication(object):
-    def __init__(self, name:str, frequency=0, intensity=0, importance=0, character_id=None):
+    def __init__(self, name: str, frequency=0, intensity=0, importance=0, character_id=None):
         super().__init__()
         self.name = name
         self.character_id = character_id
@@ -454,6 +461,7 @@ class Complication(object):
             self.intensity = complication.intensity
             self.importance = complication.importance
 
+
 class Talent(object):
     def __init__(self, character_id, name, lvl=0):
         super().__init__()
@@ -483,6 +491,7 @@ class Talent(object):
         talent = db.talents.load_attribute(self.character_id, self.name)
         if talent:
             self.lvl = talent.lvl
+
 
 class Perk(object):
     def __init__(self, character_id, name, lvl=0):
@@ -515,7 +524,6 @@ class Perk(object):
         perk = db.perks.load_attribute(self.character_id, self.name)
         if perk:
             self.lvl = perk.lvl
-
 
 
 class dbAttributesManager(dbManager):
@@ -556,7 +564,6 @@ class dbAttributesManager(dbManager):
         if self.perk_blueprints.count() == 0:
             self.load_attributes(attribute_type='perk', db_table=self.perk_blueprints)
 
-
     def load_attributes(self, attribute_type, db_table):
         ep_mgr = EndpointManager()
         attributes = ep_mgr.get_attributes(attribute_type)
@@ -577,10 +584,10 @@ class dbAttributesManager(dbManager):
             else:
                 db_table.add(name=name, description=desc, cost=cost)
 
+
 def main():
     db_mgr = dbAttributesManager()
-   
+
+
 if __name__ == '__main__':
     main()
-
-
