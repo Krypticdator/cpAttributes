@@ -9,6 +9,7 @@ from AWSExportImportManager import EndpointManager
 
 
 # TODO move category field here
+# Get this to work on travis
 
 
 class BluePrintsTable(Base, DefaultTableOperations):
