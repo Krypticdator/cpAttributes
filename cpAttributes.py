@@ -1,5 +1,6 @@
 __author__ = 'Toni'
 
+
 from SQLAlchemyBaseClass import dbManager, DefaultTableOperations
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from SQLAlchemyBaseClass import Base
