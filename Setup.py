@@ -9,9 +9,5 @@ setup(name='cpAttributes',
       description='cpAttributes to use for character',
       author='Toni Nurmi',
       author_email='toni.nurmi@hotmail.com',
-      install_requires=['SQLAlchemyBaseClass',
-                        'awsExportImportManager',
-                        'sqlalchemy'],
-      dependency_links=['https://github.com/Krypticdator/SQLAlchemyBaseClass.git#egg=SQLAlchemyBaseClass-1.2',
-                        'https://github.com/Krypticdator/AWSExportImportManager.git#egg=awsExportImportManager-1.1']
+      install_requires=['sqlalchemy']
      )
