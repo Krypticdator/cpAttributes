@@ -20,7 +20,7 @@ class BluePrintsTable(Base, DefaultTableOperations):
     type = Column(String, nullable=False)
     cost = Column(Float)
 
-    def count(self):
+    def count(self) -> object:
         c = self.get_class()
         query = self.session.query(c).order_by(c.name)
         return len(query.all())
@@ -35,7 +35,7 @@ class BluePrintsTable(Base, DefaultTableOperations):
         row = c(name=name, description=description, cost=cost)
         self.add_and_commit(row)
 
-    def search_by_name(self, name):
+    def search_by_name(self, name:str) -> object:
         c = self.get_class()
         query = self.session.query(c).filter(c.name == name)
         return query.first()
@@ -52,7 +52,20 @@ class SkillBlueprints(BluePrintsTable):
     chip_lvl_cost = Column(Integer)
     __mapper_args__ = {'polymorphic_identity': 'skill_blueprints'}
 
-    def add(self, name, category, stat, chippable, chip_lvl_cost, diff, cost, short, description):
+    def add(self, name: str, category: str, stat: str, chippable: str, chip_lvl_cost: int, diff: int, cost: int, short: str,
+            description: str):
+        """
+
+        :param name             name of the skill
+        :param category         group identifier for the skill
+        :param stat             character attribute governing this skill
+        :param chippable        is this skill cyberneticaly chippable
+        :param chip_lvl_cost    basic cost per level for skill chip with this skill
+        :param diff             difficulty level to improve this skill
+        :param cost             cost of bying this skill in character creation
+        :param short            unique short alias for this skill
+        :param description      long text explaining the scope of this skill
+        """
         diff = int(diff)
         chip_lvl_cost = int(chip_lvl_cost)
         cost = float(cost)
@@ -593,3 +606,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+else:
+    db_mgr = dbAttributesManager()
